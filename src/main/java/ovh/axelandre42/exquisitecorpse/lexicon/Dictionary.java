@@ -27,23 +27,48 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Dictionnary {
+/**
+ * This class represents a list of every word of a dictionary.
+ * 
+ * @author Alexandre Waeles
+ */
+public class Dictionary {
 	private Map<Class<? extends Word>, List<Word>> words = new HashMap<>();
-	
+
+	/**
+	 * Adds a new word into the dictionary.
+	 * 
+	 * @param word the word to add.
+	 * @see Word
+	 */
 	public void add(Word word) {
 		List<Word> sublist;
 		if ((sublist = words.get(word.getClass())) == null) {
 			sublist = new ArrayList<>();
 			words.put(word.getClass(), sublist);
 		}
-		
+
 		sublist.add(word);
 	}
-	
+
+	/**
+	 * Finds a word instance from a given string.
+	 * 
+	 * @param word the word to find.
+	 * @param type the wanted type of the word.
+	 * @return a {@link Word} instance.
+	 */
 	public Word get(String word, Class<? extends Word> type) {
 		return words.get(type).parallelStream().filter(w -> w.match(word)).findFirst().orElse(null);
 	}
-	
+
+	/**
+	 * Finds a word instance from its index.
+	 * 
+	 * @param index the index of the word.
+	 * @param type  the wanted type of the word.
+	 * @return a {@link Word} instance.
+	 */
 	public Word get(int index, Class<? extends Word> type) {
 		return words.get(type).get(index);
 	}
