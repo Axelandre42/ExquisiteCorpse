@@ -22,30 +22,34 @@
  */
 package ovh.axelandre42.exquisitecorpse.lexicon;
 
-import java.util.Map.Entry;
-import java.util.Set;
-
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Alexandre Waeles
  *
  */
-public class Word {
-	private BiMap<String, Set<String>> variants = HashBiMap.create();
+public class Lexicon {
+	private Map<String, List<Word>> lexicon = new HashMap<>();
 
-	public boolean match(String word) {
-		return variants.containsKey(word);
+	public void add(String type, Word word) {
+		lexicon.get(type).add(word);
 	}
 
-	public void add(String word, Set<String> flags) {
-		variants.put(word, flags);
+	public Word get(String type, String word) {
+		return lexicon.get(type).parallelStream().filter(w -> w.match(word)).findFirst().orElse(null);
 	}
 
-	public String get(Set<String> constraints) {
-		Entry<String, Set<String>> matching = variants.entrySet().parallelStream()
-				.filter(s -> s.getValue().containsAll(constraints)).findFirst().orElse(null);
-		return matching == null ? null : matching.getKey();
+	public Word get(String type, int index) {
+		return lexicon.get(type).get(index);
+	}
+
+	public int size(String type) {
+		return lexicon.get(type).size();
+	}
+
+	public int indexOf(String type, Word word) {
+		return lexicon.get(type).indexOf(word);
 	}
 }
