@@ -20,51 +20,12 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package ovh.axelandre42.exquisitecorpse.lexicon;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
+package ovh.axelandre42.exquisitecorpse.grammar;
 
 /**
  * @author Alexandre Waeles
  *
  */
-public class Word {
-	private Map<String, Set<String>> variants = new HashMap<>();
+public class SentenceBuilder {
 
-	private String root;
-
-	/**
-	 * Set root word for this word instance.
-	 * 
-	 * @param root the root word
-	 */
-	public void setRoot(String root) {
-		this.root = root;
-	}
-
-	public String getRoot() {
-		return root;
-	}
-
-	public boolean match(String word) {
-		return variants.containsKey(word);
-	}
-
-	public void add(String word, Set<String> flags) {
-		variants.put(word, flags);
-	}
-
-	public Set<Entry<String, Set<String>>> entries() {
-		return variants.entrySet();
-	}
-
-	public List<Entry<String, Set<String>>> get(Set<String> constraints) {
-		return variants.entrySet().parallelStream().filter(s -> s.getValue().containsAll(constraints))
-				.collect(Collectors.toList());
-	}
 }

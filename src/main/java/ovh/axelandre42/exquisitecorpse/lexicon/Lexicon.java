@@ -22,9 +22,14 @@
  */
 package ovh.axelandre42.exquisitecorpse.lexicon;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collector;
 
 /**
  * @author Alexandre Waeles
@@ -33,23 +38,46 @@ import java.util.Map;
 public class Lexicon {
 	private Map<String, List<Word>> lexicon = new HashMap<>();
 
+	private void typeExists(String type) {
+		if (!lexicon.containsKey(type)) {
+			lexicon.put(type, new ArrayList<>());
+		}
+	}
+
 	public void add(String type, Word word) {
+		typeExists(type);
 		lexicon.get(type).add(word);
 	}
 
-	public Word get(String type, String word) {
-		return lexicon.get(type).parallelStream().filter(w -> w.match(word)).findFirst().orElse(null);
+	public Word getFromRoot(String type, String word) {
+		typeExists(type);
+		return lexicon.get(type).parallelStream().filter(w -> w.getRoot().equals(word)).findAny().orElse(null);
 	}
 
-	public Word get(String type, int index) {
-		return lexicon.get(type).get(index);
+	public Set<Entry<String, Set<String>>> all(String type) {
+		typeExists(type);
+		return lexicon.get(type).parallelStream().map(w -> w.entries())
+				.collect(Collector.of(HashSet::new, HashSet::addAll, (left, right) -> {
+					left.addAll(right);
+					return left;
+				}));
 	}
 
-	public int size(String type) {
-		return lexicon.get(type).size();
+	public List<Entry<String, Set<String>>> matching(String type, Set<String> constraints) {
+		typeExists(type);
+		List<Entry<String, Set<String>>> results = lexicon.get(type).parallelStream().map(w -> w.get(constraints))
+				.collect(Collector.of(ArrayList::new, ArrayList::addAll, (left, right) -> {
+					left.addAll(right);
+					return left;
+				}));
+		return results;
 	}
 
-	public int indexOf(String type, Word word) {
-		return lexicon.get(type).indexOf(word);
+	public int sizeMatching(String type, Set<String> constraints) {
+		return matching(type, constraints).size();
+	}
+
+	public Set<String> types() {
+		return lexicon.keySet();
 	}
 }
