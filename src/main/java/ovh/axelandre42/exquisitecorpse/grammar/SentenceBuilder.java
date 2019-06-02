@@ -22,10 +22,66 @@
  */
 package ovh.axelandre42.exquisitecorpse.grammar;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import ovh.axelandre42.exquisitecorpse.lexicon.Lexicon;
+
 /**
  * @author Alexandre Waeles
  *
  */
 public class SentenceBuilder {
+	private byte[] data;
+	private Lexicon lexicon;
+	private LanguageGrammar grammar;
 
+	private List<Entry<String, Set<String>>> sentence = new ArrayList<Entry<String, Set<String>>>();
+	private int currentWorkingIndex = 0;
+	private long lastResult = 0;
+
+	public SentenceBuilder(byte[] data, Lexicon lexicon, LanguageGrammar grammar) {
+		this.data = data;
+		this.lexicon = lexicon;
+		this.grammar = grammar;
+	}
+
+	public SentenceBuilder next(String type) {
+		List<Entry<String, Set<String>>> matching;
+
+		if (grammar.shouldHaveConstraints(type)) {
+			matching = lexicon.matching(type,
+					grammar.getConstraints(type, sentence.get(currentWorkingIndex).getValue()));
+		} else {
+			matching = lexicon.matching(type, Collections.emptySet());
+		}
+
+		long selectedLong = selectBytes(matching.size(), lastResult);
+		int selectedValue = (int) (selectedLong % matching.size());
+		lastResult = selectedLong - matching.size();
+
+		System.out.println(selectedValue);
+
+		return this;
+	}
+
+	private long selectBytes(int lowerBound, long old) {
+		long selected = 0;
+		for (int i = 0; selected < lowerBound; i++) {
+			ByteBuffer buf = ByteBuffer.allocate(8);
+			buf.putLong(old);
+			buf.put(data, 0, i + 1);
+			selected = buf.getLong();
+		}
+		return selected;
+	}
+
+	public SentenceBuilder before(String type) {
+
+		return this;
+	}
 }
