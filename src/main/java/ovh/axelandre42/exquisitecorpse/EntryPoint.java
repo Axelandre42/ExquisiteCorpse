@@ -25,7 +25,6 @@ package ovh.axelandre42.exquisitecorpse;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
@@ -78,7 +77,7 @@ public class EntryPoint {
 					lexicon.sizeMatching(type, Collections.emptySet())));
 		}
 
-		byte[] data = new byte[4];
+		byte[] data = new byte[16];
 		Random random = new Random();
 		random.nextBytes(data);
 
@@ -106,12 +105,14 @@ public class EntryPoint {
 				} else if (type.equals("Ver")) {
 					return flags.parallelStream().filter(c -> c.equals("PL") || c.equals("SG"))
 							.collect(Collectors.toSet());
+				} else {
+					return flags;
 				}
-
-				return null;
 			}
 		});
 
+		builder.next("Nom").before("Det").next("Adj").next("Ver").next("Nom").before("Det").next("Adj");
+		System.out.println(String.format("Sentence: %s", builder.build()));
 	}
 
 	private static void loadResource(String resourcePath, Lexicon lexicon) {
@@ -140,13 +141,6 @@ public class EntryPoint {
 		for (int i = 1; i < attrs.length; i++) {
 			w.add(word, new HashSet<>(Arrays.asList(attrs[i].split("\\+"))));
 		}
-	}
-
-	private static Entry<String, Set<String>> randomSelect(String type, Set<String> constraints, Lexicon lexicon,
-			Random random) {
-		int bound = lexicon.sizeMatching(type, constraints);
-		int index = random.nextInt(bound);
-		return lexicon.matching(type, constraints).get(index);
 	}
 
 }

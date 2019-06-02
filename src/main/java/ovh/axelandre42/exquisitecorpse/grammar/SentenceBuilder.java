@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import ovh.axelandre42.exquisitecorpse.lexicon.Lexicon;
 
@@ -43,6 +44,7 @@ public class SentenceBuilder {
 	private List<Entry<String, Set<String>>> sentence = new ArrayList<Entry<String, Set<String>>>();
 	private int currentWorkingIndex = 0;
 	private long lastResult = 0;
+	private int currentOffset = 0;
 
 	public SentenceBuilder(byte[] data, Lexicon lexicon, LanguageGrammar grammar) {
 		this.data = data;
@@ -54,34 +56,66 @@ public class SentenceBuilder {
 		List<Entry<String, Set<String>>> matching;
 
 		if (grammar.shouldHaveConstraints(type)) {
-			matching = lexicon.matching(type,
-					grammar.getConstraints(type, sentence.get(currentWorkingIndex).getValue()));
+			Set<String> constraints = grammar.getConstraints(type, sentence.get(currentWorkingIndex).getValue());
+			System.out.println(constraints);
+			matching = lexicon.matching(type, constraints);
 		} else {
 			matching = lexicon.matching(type, Collections.emptySet());
+			currentWorkingIndex = sentence.size();
 		}
 
 		long selectedLong = selectBytes(matching.size(), lastResult);
 		int selectedValue = (int) (selectedLong % matching.size());
 		lastResult = selectedLong - matching.size();
 
-		System.out.println(selectedValue);
+		System.out.println(String.format("Selected %d/%d. %d bytes are still remaining.", selectedValue,
+				matching.size(), data.length - currentOffset));
+
+		sentence.add(matching.get(selectedValue));
 
 		return this;
 	}
 
 	private long selectBytes(int lowerBound, long old) {
 		long selected = 0;
-		for (int i = 0; selected < lowerBound; i++) {
-			ByteBuffer buf = ByteBuffer.allocate(8);
-			buf.putLong(old);
-			buf.put(data, 0, i + 1);
+		ByteBuffer oldBuf = ByteBuffer.allocate(Long.BYTES * 2);
+		oldBuf.putLong(old);
+		oldBuf.put(data, currentOffset,
+				(data.length - currentOffset) >= Long.BYTES ? Long.BYTES : (data.length - currentOffset));
+		byte[] arr = oldBuf.array();
+		int i = 0;
+		for (; selected < lowerBound && i < Long.BYTES; i++) {
+			ByteBuffer buf = ByteBuffer.wrap(arr, i, Long.BYTES);
 			selected = buf.getLong();
 		}
+		currentOffset += i;
 		return selected;
 	}
 
 	public SentenceBuilder before(String type) {
+		List<Entry<String, Set<String>>> matching;
 
+		if (grammar.shouldHaveConstraints(type)) {
+			matching = lexicon.matching(type,
+					grammar.getConstraints(type, sentence.get(currentWorkingIndex).getValue()));
+		} else {
+			matching = lexicon.matching(type, Collections.emptySet());
+			currentWorkingIndex = sentence.size();
+		}
+
+		long selectedLong = selectBytes(matching.size(), lastResult);
+		int selectedValue = (int) (selectedLong % matching.size());
+		lastResult = selectedLong - matching.size();
+
+		System.out.println(String.format("Selected %d/%d. %d bytes are still remaining.", selectedValue,
+				matching.size(), data.length - currentOffset));
+
+		sentence.add(sentence.size() - 1, matching.get(selectedValue));
+		currentWorkingIndex += 1;
 		return this;
+	}
+
+	public String build() {
+		return sentence.parallelStream().map(e -> e.getKey()).collect(Collectors.joining(" "));
 	}
 }
