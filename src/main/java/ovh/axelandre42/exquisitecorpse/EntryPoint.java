@@ -85,7 +85,7 @@ public class EntryPoint {
 
 			@Override
 			public boolean shouldHaveConstraints(String type) {
-				if (type.equals("Nom"))
+				if (type.equals("Nom") || type.equals("Adv"))
 					return false;
 
 				return true;
@@ -111,7 +111,20 @@ public class EntryPoint {
 			}
 		});
 
-		builder.next("Nom").before("Det").next("Adj").next("Ver").next("Nom").before("Det").next("Adj");
+		boolean[] before = { false, true, false, false, false, false, true, false, false, true, false, false, false,
+				false, true, false };
+		String[] types = { "Nom", "Det", "Adj", "Ver", "Adv", "Nom", "Det", "Adj", "Nom", "Det", "Adj", "Ver", "Adv",
+				"Nom", "Det", "Adj" };
+
+		for (int i = 0; i < types.length; i++) {
+			System.out.println(types[i]);
+			if (before[i]) {
+				builder.before(types[i], i == types.length);
+				continue;
+			}
+			builder.next(types[i], i == types.length);
+		}
+
 		System.out.println(String.format("Sentence: %s", builder.build()));
 	}
 
@@ -138,6 +151,12 @@ public class EntryPoint {
 			w.setRoot(root);
 			lexicon.add(type, w);
 		}
+
+		if (attrs.length == 1) {
+			w.add(word, Collections.emptySet());
+			return;
+		}
+
 		for (int i = 1; i < attrs.length; i++) {
 			w.add(word, new HashSet<>(Arrays.asList(attrs[i].split("\\+"))));
 		}
