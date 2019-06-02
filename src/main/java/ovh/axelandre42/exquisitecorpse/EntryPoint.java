@@ -31,6 +31,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ovh.axelandre42.exquisitecorpse.grammar.LanguageGrammar;
+import ovh.axelandre42.exquisitecorpse.grammar.SentenceBuilder;
 import ovh.axelandre42.exquisitecorpse.lexicon.Lexicon;
 import ovh.axelandre42.exquisitecorpse.lexicon.Word;
 
@@ -76,31 +78,40 @@ public class EntryPoint {
 					lexicon.sizeMatching(type, Collections.emptySet())));
 		}
 
+		byte[] data = new byte[4];
 		Random random = new Random();
+		random.nextBytes(data);
 
-		Entry<String, Set<String>> noun1 = randomSelect("Nom", Collections.emptySet(), lexicon, random);
+		SentenceBuilder builder = new SentenceBuilder(data, lexicon, new LanguageGrammar() {
 
-		Set<String> nounFlags = noun1.getValue();
-		Set<String> detConstraints;
+			@Override
+			public boolean shouldHaveConstraints(String type) {
+				if (type.equals("Nom"))
+					return false;
 
-		if (nounFlags.contains("PL")) {
-			detConstraints = new HashSet<>(Arrays.asList("PL", "InvGen"));
-		} else if (nounFlags.contains("InvPL")) {
-			nounFlags.remove("InvPL");
-			detConstraints = nounFlags;
-		} else {
-			detConstraints = nounFlags;
-		}
+				return true;
+			}
 
-		Entry<String, Set<String>> det1 = randomSelect("Det", detConstraints, lexicon, random);
+			@Override
+			public Set<String> getConstraints(String type, Set<String> flags) {
+				if (type.equals("Det")) {
+					if (flags.contains("PL")) {
+						return new HashSet<>(Arrays.asList("PL", "InvGen"));
+					} else if (flags.contains("InvPL")) {
+						flags.remove("InvPL");
+						return flags;
+					} else {
+						return flags;
+					}
+				} else if (type.equals("Ver")) {
+					return flags.parallelStream().filter(c -> c.equals("PL") || c.equals("SG"))
+							.collect(Collectors.toSet());
+				}
 
-		Set<String> verbConstraints = nounFlags.parallelStream().filter(c -> c.equals("PL") || c.equals("SG"))
-				.collect(Collectors.toSet());
-		verbConstraints.add("P3");
+				return null;
+			}
+		});
 
-		Entry<String, Set<String>> verb1 = randomSelect("Ver", verbConstraints, lexicon, random);
-
-		System.out.println(String.format("Sentence is: %s %s %s.", det1.getKey(), noun1.getKey(), verb1.getKey()));
 	}
 
 	private static void loadResource(String resourcePath, Lexicon lexicon) {
