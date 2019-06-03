@@ -72,11 +72,6 @@ public class EntryPoint {
 		loadResource("/assets/dict/fr/y.tsv", lexicon);
 		loadResource("/assets/dict/fr/z.tsv", lexicon);
 
-		for (String type : lexicon.types()) {
-			System.out.println(String.format("Lexicon of type \'%s\' is filled with %d entries", type,
-					lexicon.sizeMatching(type, Collections.emptySet())));
-		}
-
 		byte[] data = new byte[256];
 		Random random = new Random();
 		random.nextBytes(data);
@@ -125,7 +120,7 @@ public class EntryPoint {
 				}
 				builder.next(types[i], isLast);
 			}
-			System.out.println(String.format("Sentence: %s.", builder.build()));
+			System.out.println(builder.build() + ".");
 		}
 
 	}
