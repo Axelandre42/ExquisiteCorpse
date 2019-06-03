@@ -77,7 +77,7 @@ public class EntryPoint {
 					lexicon.sizeMatching(type, Collections.emptySet())));
 		}
 
-		byte[] data = new byte[16];
+		byte[] data = new byte[256];
 		Random random = new Random();
 		random.nextBytes(data);
 
@@ -103,29 +103,31 @@ public class EntryPoint {
 						return flags;
 					}
 				} else if (type.equals("Ver")) {
-					return flags.parallelStream().filter(c -> c.equals("PL") || c.equals("SG"))
+					Set<String> constraints = flags.parallelStream().filter(c -> c.equals("PL") || c.equals("SG"))
 							.collect(Collectors.toSet());
+					constraints.add("P3");
+					return constraints;
 				} else {
 					return flags;
 				}
 			}
 		});
 
-		boolean[] before = { false, true, false, false, false, false, true, false, false, true, false, false, false,
-				false, true, false };
-		String[] types = { "Nom", "Det", "Adj", "Ver", "Adv", "Nom", "Det", "Adj", "Nom", "Det", "Adj", "Ver", "Adv",
-				"Nom", "Det", "Adj" };
+		boolean[] before = { false, true, false, false, false, false, true, false };
+		String[] types = { "Nom", "Det", "Adj", "Ver", "Adv", "Nom", "Det", "Adj" };
 
-		for (int i = 0; i < types.length; i++) {
-			System.out.println(types[i]);
-			if (before[i]) {
-				builder.before(types[i], i == types.length);
-				continue;
+		while (builder.remaining() > 0) {
+			for (int i = 0; i < types.length; i++) {
+				boolean isLast = i + 1 == types.length && builder.remaining() == 0;
+				if (before[i]) {
+					builder.before(types[i], isLast);
+					continue;
+				}
+				builder.next(types[i], isLast);
 			}
-			builder.next(types[i], i == types.length);
+			System.out.println(String.format("Sentence: %s.", builder.build()));
 		}
 
-		System.out.println(String.format("Sentence: %s", builder.build()));
 	}
 
 	private static void loadResource(String resourcePath, Lexicon lexicon) {

@@ -77,9 +77,6 @@ public class SentenceBuilder {
 
 		int selectedValue = selectValue(selectedLong, matching);
 
-		System.out.println(String.format("Selected %d/%d. %d bytes are still remaining. Last result is %d.",
-				selectedValue, matching.size(), remaining(), lastResult));
-
 		sentence.add(matching.get(selectedValue));
 
 		return this;
@@ -105,8 +102,7 @@ public class SentenceBuilder {
 			ByteBuffer buf = ByteBuffer.wrap(arr, i, Integer.BYTES);
 			selected = buf.getInt();
 		}
-		currentPaddingOffset += 4;
-		System.out.println(currentPaddingOffset);
+		currentPaddingOffset += i;
 		return selected;
 	}
 
@@ -115,11 +111,10 @@ public class SentenceBuilder {
 		ByteBuffer oldBuf = ByteBuffer.allocate(Integer.BYTES * 2);
 		oldBuf.putInt(old);
 		int len = remaining() >= Integer.BYTES ? Integer.BYTES : remaining();
-		System.out.println(String.format("off=%d len=%d arr=%B", currentOffset, len, oldBuf.hasArray()));
 		oldBuf.put(data, currentOffset, len);
 		byte[] arr = oldBuf.array();
 		int i = 0;
-		for (; selected < lowerBound && i < Integer.BYTES; i++) {
+		for (; currentOffset + i < data.length && selected < lowerBound && i < Integer.BYTES; i++) {
 			ByteBuffer buf = ByteBuffer.wrap(arr, i, Integer.BYTES);
 			selected = buf.getInt();
 		}
@@ -155,9 +150,6 @@ public class SentenceBuilder {
 
 		int selectedValue = selectValue(selectedLong, matching);
 
-		System.out.println(String.format("Selected %d/%d. %d bytes are still remaining. Last result is %d.",
-				selectedValue, matching.size(), remaining(), lastResult));
-
 		sentence.add(sentence.size() - 1, matching.get(selectedValue));
 		currentWorkingIndex += 1;
 		return this;
@@ -168,6 +160,8 @@ public class SentenceBuilder {
 	}
 
 	public String build() {
-		return sentence.parallelStream().map(e -> e.getKey()).collect(Collectors.joining(" "));
+		String result = sentence.parallelStream().map(e -> e.getKey()).collect(Collectors.joining(" "));
+		sentence = new ArrayList<>();
+		return result;
 	}
 }
