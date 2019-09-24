@@ -8,8 +8,10 @@
 
 plugins {
     // Apply the java-library plugin to add support for Java Library
-    id 'java-library'
+    id 'application'
 }
+
+mainClassName = 'ovh.axelandre42.exquisitecorpse.EntryPoint'
 
 repositories {
     // Use jcenter for resolving your dependencies.
@@ -20,12 +22,4 @@ repositories {
 dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
-}
-
-jar {
-    manifest {
-        attributes(
-                'Main-Class': 'ovh.axelandre42.exquisitecorpse.EntryPoint'
-        )
-    }
 }
