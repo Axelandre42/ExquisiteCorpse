@@ -11,7 +11,7 @@ plugins {
     id 'application'
 }
 
-mainClassName = 'ovh.axelandre42.exquisitecorpse.EntryPoint'
+mainClassName = 'exquisitecorpse.EntryPoint'
 
 repositories {
     // Use jcenter for resolving your dependencies.
