@@ -21,7 +21,7 @@ public enum Attributes implements AttributeType {
 
     @Override
     public Comparator<String> getPriorityComparator() {
-        return Comparator.comparingInt(value -> validityMapping.get(value).intValue());
+        return Comparator.comparingInt(value -> validityMapping.get(value));
     }
 
     @Override

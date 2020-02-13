@@ -5,7 +5,9 @@
 /build/
 /bin/
 
+# Ignore IDEs specific files
 /.classpath
 /.project
 /.settings/
 /.nb-gradle/
+/.idea/
